@@ -3,29 +3,62 @@ from rest_framework.views import APIView,Response
 from .models import User
 
 # Create your views here.
-class RegesterUSer(APIView):
-    def post(self,request): 
-       try:    
-            count=User.objects.all().filter(email=request.data['email']).count() 
-            if count==0:
+# class RegesterUSer(APIView):
+#     def post(self,request): 
+#        try:    
+#             count=User.objects.all().filter(email=request.data['email']).count() 
+#             if count==0:
+#                 User.objects.create(
+#                 name=request.data['name'],
+#                 email=request.data['email'],
+#                 password=request.data['password'],
+#                 image=request.FILES.get('image'),
+#                 ).save()
+#                 isCreated= (User.objects.all().filter(email=request.data['email']).count()==0)
+#                 if not isCreated:
+#                     return Response({"code":"200","message":"Registration succesfully"})
+#                 else:
+#                     return Response({"code":"200","message":"Registration failed !"})              
+#             else:
+#                 return Response({"code":"200","message":"user allready exist"})            
+#        except Exception as e:
+#            return Response({"error":e})
+
+
+
+# add by anil 
+class RegisterUser(APIView):
+    def post(self, request):
+        try:
+            # Check if the user already exists
+            count = User.objects.filter(email=request.data['email']).count()
+            if count == 0:
+                # Create a new user
                 User.objects.create(
-                name=request.data['name'],
-                email=request.data['email'],
-                password=request.data['password'],
-                image=request.FILES.get('image'),
+                    full_name=request.data['full_name'],
+                    email=request.data['email'],
+                    mobile_number=request.data['mobile_number'],
+                    gender=request.data['gender'],
+                    state=request.data['state'],
+                    district=request.data['district'],
+                    city=request.data['city'],
+                    address=request.data['address'],
+                    pin_code=request.data['pin_code'],
+                    password=request.data['password'],
+                    image=request.FILES.get('image')
                 ).save()
-                isCreated= (User.objects.all().filter(email=request.data['email']).count()==0)
-                if not isCreated:
-                    return Response({"code":"200","message":"Registration succesfully"})
+
+                # Check if the user was successfully created
+                isCreated = User.objects.filter(email=request.data['email']).count() == 1
+                if isCreated:
+                    return Response({"code": "200", "message": "Registration successful"})
                 else:
-                    return Response({"code":"200","message":"Registration failed !"})              
+                    return Response({"code": "200", "message": "Registration failed"})
             else:
-                return Response({"code":"200","message":"user allready exist"})            
-       except Exception as e:
-           return Response({"error":e})
-
-
-
+                return Response({"code": "200", "message": "User already exists"})
+        except Exception as e:
+            return Response({"error": str(e)})
+# and by anil 
 
 
 class LoginUser(APIView):

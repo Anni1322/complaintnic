@@ -100,7 +100,7 @@ MEDIA_URL = "media/"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'complaint',  # Database name
+        'NAME': 'complaints',  # Database name
         'USER': 'root',  # MySQL username
         'PASSWORD': '',  # MySQL password
         'HOST': 'localhost',  # MySQL host
