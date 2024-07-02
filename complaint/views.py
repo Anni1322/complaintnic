@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from rest_framework.views import APIView,Response
-from .models import User
+from .models import *
+from rest_framework import status
+from .serializers import *
+from django.http import JsonResponse
 
 # Create your views here.
 # class RegesterUSer(APIView):
@@ -26,57 +29,206 @@ from .models import User
 
 
 
-# add by anil 
-class RegisterUser(APIView):
+# add by a
+# class RegisterUser(APIView):
+#     def post(self, request):
+#         try:
+#             # Check if the user already exists
+#             count = User.objects.filter(email=request.data['email']).count()
+#             if count == 0:
+#                 # Create a new user
+#                 User.objects.create(
+#                     full_name=request.data['full_name'],
+#                     email=request.data['email'],
+#                     mobile_number=request.data['mobile_number'],
+#                     gender=request.data['gender'],
+#                     state=request.data['state'],
+#                     district=request.data['district'],
+#                     city=request.data['city'],
+#                     address=request.data['address'],
+#                     pin_code=request.data['pin_code'],
+#                     password=request.data['password'],
+#                     image=request.FILES.get('image'),
+#                     role=request.data['role']
+#                 ).save()
+
+#                 # Check if the user was successfully created
+#                 isCreated = User.objects.filter(email=request.data['email']).count() == 1
+#                 if isCreated:
+#                     return Response({"code": "200", "message": "Registration successful"})
+#                 else:
+#                     return Response({"code": "200", "message": "Registration failed"})
+#             else:
+#                 return Response({"code": "200", "message": "User already exists"})
+#         except Exception as e:
+#             return Response({"error": str(e)})
+
+
+class RegisterUserAPIView(APIView):
     def post(self, request):
         try:
-            # Check if the user already exists
-            count = User.objects.filter(email=request.data['email']).count()
-            if count == 0:
-                # Create a new user
-                User.objects.create(
-                    full_name=request.data['full_name'],
-                    email=request.data['email'],
-                    mobile_number=request.data['mobile_number'],
-                    gender=request.data['gender'],
-                    state=request.data['state'],
-                    district=request.data['district'],
-                    city=request.data['city'],
-                    address=request.data['address'],
-                    pin_code=request.data['pin_code'],
-                    password=request.data['password'],
-                    image=request.FILES.get('image')
-                ).save()
-
-                # Check if the user was successfully created
-                isCreated = User.objects.filter(email=request.data['email']).count() == 1
-                if isCreated:
-                    return Response({"code": "200", "message": "Registration successful"})
-                else:
-                    return Response({"code": "200", "message": "Registration failed"})
-            else:
-                return Response({"code": "200", "message": "User already exists"})
+            serializer = UserSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": str(e)})
-# and by anil 
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class LoginUser(APIView):
-    def post(self,request):
+
+# and by a 
+
+
+class RegisterUserCreateView(APIView):
+    def post(self, request):
         try:
-            count = User.objects.all().filter(email=request.data['email']).count()
-            if(count==1):
-                count2=User.objects.all().filter(password=request.data['password'],email=request.data['email']).count()
-                if count2==1:
-                    user=User.objects.all().filter(password=request.data['password'],email=request.data['email']).values()
-                    return Response({"code":"200","message":"Login succesfully","User detials": user})
-                else:
-                    return Response({"code":"400","message":"Given password is incorrect"})
-            else:
-                return Response({"code":"401","message":"User not registered"})
+            serializer = RegisterUserSerializer(data=request.data)
+            if serializer.is_valid():
+                # Save the validated data and create a new user
+                serializer.save()
+                return Response({"code": "201", "message": "Registration successful"}, status=status.HTTP_201_CREATED)
+            # If serializer is not valid, return errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            Response({"Exception ":e})
+            # Handle any other exceptions and return 500 error
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+
+
+
+
+#add by  a start
+class LoginUser(APIView):
+    def post(self, request):
+        try:
+            email = request.data.get('email')
+            password = request.data.get('password')
+            
+            # Check if user with given email exists
+            user = User.objects.filter(email=email).first()
+            
+            if user:
+                # User exists, now check password
+                if user.password == password:
+                    # Password matches, prepare response
+                    response_data = {
+                        "code": "200",
+                        "message": "Login successfully",
+                        "user_details": {
+                            "full_name": user.full_name,
+                            "email": user.email,
+                            "role": user.get_role_display()  # Display role name ('User' or 'Admin')
+                        }
+                    }
+                    return Response(response_data)
+                else:
+                    # Password does not match
+                    return Response({"code": "400", "message": "Incorrect password"})
+            else:
+                # User not registered
+                return Response({"code": "401", "message": "User not registered"})
+        except Exception as e:
+            return Response({"code": "500", "message": "Exception occurred", "exception_details": str(e)})
+#add by  a end 
+
+
+
+# add by a
+
+class ComplaintListCreateAPIView(APIView):
+    def post(self, request):
+        try:
+            serializer = ComplaintSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)       
+
+
+
+
+class ComplaintDetailAPIView(APIView):
+    def get_object(self, pk):
+        try:
+            return Complaint.objects.get(cid=pk)
+        except Complaint.DoesNotExist:
+            raise status.HTTP_404_NOT_FOUND
+
+    def get(self, request, pk):
+        complaint = self.get_object(pk)
+        serializer = ComplaintSerializer(complaint)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        complaint = self.get_object(pk)
+        serializer = ComplaintSerializer(complaint, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        complaint = self.get_object(pk)
+        complaint.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+# add by a
+
+
+
+
+
+
+def pending_complaints_view(request):
+    pending_complaints = Complaint.objects.filter(status='Pending')
+    complaints_list = list(pending_complaints.values())
+    count = pending_complaints.count()
+    return JsonResponse({'pending_complaints': complaints_list, 'cout':count})
+
+def approved_complaints_view(request):
+    approved_complaints = Complaint.objects.filter(status='Approved')
+    complaints_list = list(approved_complaints.values())
+    count = approved_complaints.count()
+    return JsonResponse({'approved_complaints': complaints_list, 'cout':count})
+
+def reject_complaints_view(request):
+    rejected_complaints = Complaint.objects.filter(status='Reject')
+    complaints_list = list(rejected_complaints.values())
+    count = rejected_complaints.count()
+    return JsonResponse({'rejected_complaints': complaints_list, 'cout':count})
+
+
+def all_complaints_view(request):
+    all_complaints = Complaint.objects.all()
+    complaints_list = list(all_complaints.values())
+    count = all_complaints.count()
+    return JsonResponse({'all_complaints': complaints_list, 'cout':count})
+
+
+
+
+
+
+# class LoginUser(APIView):
+#     def post(self,request):
+#         try:
+#             count = User.objects.all().filter(email=request.data['email']).count()
+#             if(count==1):
+#                 count2=User.objects.all().filter(password=request.data['password'],email=request.data['email']).count()
+#                 if count2==1:
+#                     user=User.objects.all().filter(password=request.data['password'],email=request.data['email']).values()
+#                     return Response({"code":"200","message":"Login succesfully","User detials": user})
+#                 else:
+#                     return Response({"code":"400","message":"Given password is incorrect"})
+#             else:
+#                 return Response({"code":"401","message":"User not registered"})
+#         except Exception as e:
+#             Response({"Exception ":e})
 
 
 

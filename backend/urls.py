@@ -22,9 +22,28 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('registerUser/',views.RegisterUser().as_view()),
+    # path('registerUser/',views.RegisterUser().as_view()),
+    path('register/', views.RegisterUserAPIView.as_view(), name='register-user'),
     path('deleteUser/',views.DeleteUser().as_view()),
     path('updateUserPassword/',views.UpdatePassword().as_view()),
     path('loginUser/',views.LoginUser().as_view()),
     path('updateUserProfile/',views.UpdateProfileImage().as_view()),
+    
+    
+    
+    path('complaints/', views.ComplaintListCreateAPIView.as_view(), name='complaint-list-create'),
+    path('complaints/<str:pk>/', views.ComplaintDetailAPIView.as_view(), name='complaint-detail'),
+    
+    path('pending-complaints/', views.pending_complaints_view, name='pending_complaints'),
+    path('approved-complaints/', views.approved_complaints_view, name='approved_complaints'),
+    path('reject-complaints/', views.reject_complaints_view, name='reject_complaints'),
+    
+    
+    path('all_Complaints/', views.all_complaints_view, name='all_complaints'),
+
+
+
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+ 
